@@ -331,23 +331,23 @@ Analyses:
     Efficiencies:
     - Data:
       - Efficiency Stat Error:
-        - -0.0015
-        - 0.0015
+        - -0.0009185586535436918
+        - 0.0009185586535436918
         Efficiency Value: 0.133
         Flags:
         - None
         Sub-process ID: 0
       - Efficiency Stat Error:
-        - -0.00097
-        - 0.00099
-        Efficiency Value: 0.0505
+        - -0.0006001249869818786
+        - 0.0006001249869818786
+        Efficiency Value: 0.05050000000000001
         Flags:
         - None
         Sub-process ID: 147
       - Efficiency Stat Error:
-        - -0.0012
-        - 0.0012
-        Efficiency Value: 0.0826
+        - -0.0007348469228349534
+        - 0.0007348469228349534
+        Efficiency Value: 0.08260000000000002
         Flags:
         - None
         Sub-process ID: 148
@@ -356,23 +356,23 @@ Analyses:
       IsControlRegion: false
     - Data:
       - Efficiency Stat Error:
-        - -0.0015
-        - 0.0015
+        - -0.0009185586535436918
+        - 0.0009185586535436918
         Efficiency Value: 0.133
         Flags:
         - None
         Sub-process ID: 0
       - Efficiency Stat Error:
-        - -0.00097
-        - 0.00099
-        Efficiency Value: 0.0505
+        - -0.0006001249869818786
+        - 0.0006001249869818786
+        Efficiency Value: 0.05050000000000001
         Flags:
         - None
         Sub-process ID: 147
       - Efficiency Stat Error:
-        - -0.0012
-        - 0.0012
-        Efficiency Value: 0.0826
+        - -0.0007348469228349534
+        - 0.0007348469228349534
+        Efficiency Value: 0.08260000000000002
         Flags:
         - None
         Sub-process ID: 148

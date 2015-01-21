@@ -14,7 +14,7 @@ __version__ = "0.1"
 # TODO:
 #   - check which version of ATOM has been used to ensure compatibility of out yaml!
 #   - feature: allow user to restrict to particular analysis?
-#
+#   - add flags if not present
 
 
 import logging
@@ -83,15 +83,38 @@ if __name__ == "__main__":
     for atomAdd in AtomData:
         for anaName in AtomDefault["Analyses"].keys():
             #print anaName, AtomDefault["Analyses"][anaName]
+            effIndDefault = 0
             for effEntryDefault in AtomDefault["Analyses"][anaName]["Efficiencies"]:
+                dataIndDefault = 0
                 for subEffEntryDefault in effEntryDefault["Data"]:
+                    
                     for effEntryAdd in atomAdd["Analyses"][anaName]["Efficiencies"]:
                         for subEffEntryAdd in effEntryAdd["Data"]:
                             if subEffEntryAdd["Sub-process ID"] == subEffEntryDefault["Sub-process ID"]:
-                                print subEffEntryAdd, subEffEntryDefault
-                                # defval = AtomDefault["Analyses"][anaName]["Efficiencies"]["Data"]["Efficiency Value"] 
-                                # addval = atomAdd["Analyses"][anaName]["Efficiencies"]["Data"]["Efficiency Value"] 
-                                # mean = (defval +addval)/2.
-                                # print defval, addval, mean
+                                #print subEffEntryAdd, subEffEntryDefault
+                                defval = subEffEntryDefault["Efficiency Value"]
+                                addval = subEffEntryAdd["Efficiency Value"]
 
-                 
+                                [adderrM,adderrP]  = subEffEntryAdd["Efficiency Stat Error"]
+                                [deferrM,deferrP]  = subEffEntryDefault["Efficiency Stat Error"]
+                                
+                                deferror = 1/2. * ( -deferrM + deferrP ) 
+                                adderror = 1/2. * ( -adderrM + adderrP )
+
+                                # \epsilon_{A+B} = \frac{\sigma_B^2 \epsilon_A + \sigma_A^2 \epsilon_B}{\sigma_A^2+ \sigma_B^2 }
+
+                                effNew = ((deferror**2 * addval + adderror**2 * defval ) / (deferror**2 + adderror**2)) 
+                                effStatErrorNew = 1/2. * (deferror**2 + adderror**2  ) ** (0.5)
+
+                              
+                                print defval, addval, effNew, effStatErrorNew, deferror,effStatErrorNew
+                                AtomDefault["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Efficiency Value"] = effNew
+                                AtomDefault["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Efficiency Stat Error"] = [-effStatErrorNew,effStatErrorNew]
+                    dataIndDefault += 1
+                effIndDefault += 1            
+                        
+
+    with open(args.outfilename, 'w') as outFileStream:
+        AtomOut = yaml.dump(AtomDefault, default_flow_style=False)   
+        outFileStream.write(AtomOut)
+    exit()
