@@ -14,7 +14,7 @@ __version__ = "0.1"
 # TODO:
 #   - check which version of ATOM has been used to ensure compatibility of out yaml!
 #   - feature: allow user to restrict to particular analysis?
-#   - add flags if not present
+#   - add flags if not present (done)
 
 
 import logging
@@ -80,6 +80,9 @@ if __name__ == "__main__":
 
     AtomData.pop(0)
 
+
+    # better do this with hashes in the future ... 
+
     for atomAdd in AtomData:
         for anaName in AtomDefault["Analyses"].keys():
             #print anaName, AtomDefault["Analyses"][anaName]
@@ -90,7 +93,13 @@ if __name__ == "__main__":
                     
                     for effEntryAdd in atomAdd["Analyses"][anaName]["Efficiencies"]:
                         for subEffEntryAdd in effEntryAdd["Data"]:
-                            if subEffEntryAdd["Sub-process ID"] == subEffEntryDefault["Sub-process ID"]:
+                            try:
+                                test = atomAdd["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Efficiency Value"]
+                            except:
+                                logging.error("Atom outputs do not have the same structure! Please make sure to book cuts and efficiencies. In void init() of the analysis source, add\n bookEfficiency(\"EfficiencyName\");\n bookCut(\"CutName\");" )
+                                exit()
+                            if subEffEntryAdd["Sub-process ID"] == subEffEntryDefault["Sub-process ID"] and \
+                               effEntryDefault["Efficiency Name"] == effEntryAdd["Efficiency Name"]:
                                 #print subEffEntryAdd, subEffEntryDefault
                                 defval = subEffEntryDefault["Efficiency Value"]
                                 addval = subEffEntryAdd["Efficiency Value"]
@@ -101,19 +110,31 @@ if __name__ == "__main__":
                                 deferror = 1/2. * ( -deferrM + deferrP ) 
                                 adderror = 1/2. * ( -adderrM + adderrP )
 
+                                # Efficiency combination:
                                 # \epsilon_{A+B} = \frac{\sigma_B^2 \epsilon_A + \sigma_A^2 \epsilon_B}{\sigma_A^2+ \sigma_B^2 }
 
-                                effNew = ((deferror**2 * addval + adderror**2 * defval ) / (deferror**2 + adderror**2)) 
-                                effStatErrorNew = 1/2. * (deferror**2 + adderror**2  ) ** (0.5)
+                                # New error combination:
+                                #   delEps_{tot} = 1/sqrt( 1/delEff1^2 + 1/delEff2^2)
 
-                              
-                                print defval, addval, effNew, effStatErrorNew, deferror,effStatErrorNew
+                                effNew = ((deferror**2 * addval + adderror**2 * defval ) / (deferror**2 + adderror**2)) 
+                                effStatErrorNew = 1/(1./ deferror**2 + 1./adderror**2  ) ** (0.5)
+
+                                print "ana, effname, procID, defval, addval, effNew, deferror, adderror,effStatErrorNew"
+                                print anaName, effEntryDefault["Efficiency Name"], subEffEntryAdd["Sub-process ID"], defval, addval, effNew, deferror, adderror,effStatErrorNew
                                 AtomDefault["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Efficiency Value"] = effNew
                                 AtomDefault["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Efficiency Stat Error"] = [-effStatErrorNew,effStatErrorNew]
+
+                                # merge flags
+
+                                mergedFlags = list(set(subEffEntryDefault["Flags"] + subEffEntryAdd["Flags"]))
+
+                                #print mergedFlags
+                                AtomDefault["Analyses"][anaName]["Efficiencies"][effIndDefault]["Data"][dataIndDefault]["Flags"] = mergedFlags
+
                     dataIndDefault += 1
                 effIndDefault += 1            
                         
-
+    logging.info('Writin combined Atom file <' + args.outfilename + "> ...")
     with open(args.outfilename, 'w') as outFileStream:
         AtomOut = yaml.dump(AtomDefault, default_flow_style=False)   
         outFileStream.write(AtomOut)
